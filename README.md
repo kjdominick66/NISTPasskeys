@@ -7,3 +7,4 @@ Other Helpful Resourses on XLib Include:
 The XLib Manual - https://tronche.com/gui/x/xlib/
 Stack Overflow post that explains color parsing - https://stackoverflow.com/questions/14176499/change-xlib-window-background-color-with-c
 
+Thank you darkermango on GitHub for the 5 letter word dictionary file! https://github.com/darkermango/5-Letter-words

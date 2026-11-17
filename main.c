@@ -3,7 +3,7 @@
 #include <string.h>
 #include <X11/Xlib.h>
 #include <unistd.h>
-#include "generator.c"
+#include "generator.h"
 
 /* This is my first time using X11
  *
@@ -48,23 +48,43 @@ static Window create_win(int x, int y, int w, int h, int b) {
 // Implements the run loop to clean up main 
 static void run(GC gc) {
     XEvent evt;
-
+    char welcome[] = "Welcome to Keenan's NIST-Compliant Passphrase Generator!";
+    char directions[] = "Click anywhere to generate a passphrase!";
+    char copy_directions[] = "Press any key to copy the passphrase!";
+    char copied[] = "Copied passphrase to clipboard!";
+    char passphrase[36] = "";
     while (XNextEvent(dpy, &evt) == 0) {
         // Switches between "event types" (use event not the event mask)
         switch (evt.type) {
             case Expose:
-                char welcome[] = "Welcome to Keenan's NIST-Compliant Passphrase Generator!";
                 XDrawString(dpy, win, gc, 20, 30, welcome, strlen(welcome));
-                char directions[] = "Click anywhere to generate a passphrase! Press any key to copy the passphrase!";
-                XDrawString(dpy, win, gc, 20, 30, directions, strlen(directions));
-                
+                XDrawString(dpy, win, gc, 20, 80, directions, strlen(directions));
+                if (passphrase[0] != '\0') {
+                    XDrawString(dpy, win, gc, 20, 130, passphrase, strlen(passphrase));
+                    XDrawString(dpy, win, gc, 20, 180, copy_directions, strlen(copy_directions));
+                }
                 
                 break;
             case KeyPress:
-
-                return;
+                // Open a pipe to clipboard to copy
+                FILE *inFile = popen("xclip -selection clipboard", "w");
+                if (inFile != NULL) {
+                    fputs(passphrase, inFile);
+                    pclose(inFile);
+                }
+                XClearArea(dpy, win, 0, 0, 0, 0, False);
+                XDrawString(dpy, win, gc, 20, 30, welcome, strlen(welcome));
+                XDrawString(dpy, win, gc, 20, 80, directions, strlen(directions));
+                XDrawString(dpy, win, gc, 20, 130, passphrase, strlen(passphrase));
+                XDrawString(dpy, win, gc, 20, 180, copied, strlen(copied));
+                break;
             case ButtonPress:
-
+                XClearArea(dpy, win, 0, 0, 0, 0, False);
+                generate_passphrase(passphrase);
+                XDrawString(dpy, win, gc, 20, 30, welcome, strlen(welcome));
+                XDrawString(dpy, win, gc, 20, 80, directions, strlen(directions));
+                XDrawString(dpy, win, gc, 20, 130, passphrase, strlen(passphrase));
+                XDrawString(dpy, win, gc, 20, 180, copy_directions, strlen(copy_directions));
                 break;
         }
     }
@@ -84,7 +104,7 @@ int main() {
 
     GC gc = XCreateGC(dpy, win, 0, NULL);
 
-    XFontStruct *font = XLoadQueryFont(dpy, "9x15");
+    XFontStruct *font = XLoadQueryFont(dpy, "12x24");
     XSetFont(dpy, gc, font->fid);
     XSetForeground(dpy, gc, set_color("#B6B6B6").pixel);
 
