@@ -5,11 +5,6 @@
 #include <unistd.h>
 #include "generator.h"
 
-/* This is my first time using X11
- *
- *
- * */
-
 #define POSX    500
 #define POSY    500
 #define WIDTH   1000
@@ -67,7 +62,7 @@ static void run(GC gc) {
                 break;
             case KeyPress:
                 // Open a pipe to clipboard to copy
-                FILE *inFile = popen("xclip -selection clipboard", "w");
+                FILE *inFile = popen("./xclip -selection clipboard", "w");
                 if (inFile != NULL) {
                     fputs(passphrase, inFile);
                     pclose(inFile);
